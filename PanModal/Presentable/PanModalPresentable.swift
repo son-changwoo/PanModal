@@ -226,6 +226,19 @@ public protocol PanModalPresentable: AnyObject {
      Default value is an empty implementation.
      */
     func panModalWillDismiss()
+    /**
+    User Tapped dimmed area of Panmodal
+
+    Default value is an empty implementation.
+     */
+    func panModalDimmedViewTapped()
+    
+    /**
+    User Dragged PanModal to Dismiss
+ 
+    Default value is an empty implementation.
+     */
+    func userDraggedPanModalToDismiss()
 
     /**
      Notifies the delegate after the pan modal is dismissed.
@@ -235,3 +248,4 @@ public protocol PanModalPresentable: AnyObject {
     func panModalDidDismiss()
 }
 #endif
+
