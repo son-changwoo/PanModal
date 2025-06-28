@@ -846,13 +846,26 @@ private extension PanModalPresentationController {
      */
     func addRoundedCorners(to view: UIView) {
         let radius = presentable?.cornerRadius ?? 0
-        let path = UIBezierPath(roundedRect: view.bounds,
+
+        var bounds = view.bounds
+
+        if #available(iOS 19, *) {
+            var safeInsets = view.safeAreaInsets
+
+            bounds = view.bounds.inset(by: safeInsets)
+
+            bounds.origin.x = max(0, bounds.origin.x)
+            bounds.origin.y = max(0, bounds.origin.y)
+            bounds.size.width = max(0, bounds.size.width)
+            bounds.size.height = max(0, bounds.size.height)
+        }
+
+        let path = UIBezierPath(roundedRect: bounds,
                                 byRoundingCorners: [.topLeft, .topRight],
                                 cornerRadii: CGSize(width: radius, height: radius))
 
-        // Draw around the drag indicator view, if displayed
         if presentable?.showDragIndicator == true {
-            let indicatorLeftEdgeXPos = view.bounds.width/2.0 - Constants.dragIndicatorSize.width/2.0
+            let indicatorLeftEdgeXPos = bounds.midX - Constants.dragIndicatorSize.width / 2.0
             drawAroundDragIndicator(currentPath: path, indicatorLeftEdgeXPos: indicatorLeftEdgeXPos)
         }
 
@@ -861,9 +874,23 @@ private extension PanModalPresentationController {
         mask.path = path.cgPath
         view.layer.mask = mask
 
+        if #available(iOS 19, *) {
+            if let oldMask = view.layer.sublayers?.first(where: { $0.name == "panModalMask" }) {
+                oldMask.removeFromSuperlayer()
+            }
+            mask.name = "panModalMask"
+            view.layer.addSublayer(mask)
+            view.layer.masksToBounds = true
+        }
+
         // Improve performance by rasterizing the layer
         view.layer.shouldRasterize = true
         view.layer.rasterizationScale = UIScreen.main.scale
+
+        if #available(iOS 19, *) {
+            view.setNeedsLayout()
+            view.layoutIfNeeded()
+        }
     }
 
     /**
